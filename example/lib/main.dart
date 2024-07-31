@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
       data: lightTheme ? ThemeData.light() : ThemeData.dark(),
       child: Builder(builder: (context) {
         return DefaultTabController(
-          length: 3,
+          length: 4,
           child: Scaffold(
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => setState(() => lightTheme = !lightTheme),
@@ -46,6 +46,7 @@ class _MyAppState extends State<MyApp> {
               bottom: TabBar(
                 labelColor: foregroundColor,
                 tabs: const <Widget>[
+                  Tab(text: 'Color Wheel Raw'),
                   Tab(text: 'HSV/HSL/RGB'),
                   Tab(text: 'Material'),
                   Tab(text: 'Blocky'),
@@ -54,6 +55,10 @@ class _MyAppState extends State<MyApp> {
             ),
             body: TabBarView(
               children: <Widget>[
+                ColorWheelRaw(
+                  onColorChanged: changeColor,
+                  currentColor: currentColor,
+                ),
                 HSVColorPickerExample(
                   pickerColor: currentColor,
                   onColorChanged: changeColor,
@@ -73,6 +78,38 @@ class _MyAppState extends State<MyApp> {
           ),
         );
       }),
+    );
+  }
+}
+
+class ColorWheelRaw extends StatefulWidget {
+  const ColorWheelRaw({
+    Key? key,
+    required this.onColorChanged,
+    this.enableAlpha = true,
+    this.currentColor = Colors.white,
+  }) : super(key: key);
+
+  final void Function(Color) onColorChanged;
+  final bool enableAlpha;
+  final Color currentColor;
+  @override
+  State<ColorWheelRaw> createState() => _ColorWheelRawState();
+}
+
+class _ColorWheelRawState extends State<ColorWheelRaw> {
+  @override
+  Widget build(BuildContext context) {
+    return ColorPicker(
+      pickerColor: widget.currentColor,
+      onColorChanged: widget.onColorChanged,
+      colorPickerWidth: 426,
+      enableAlpha: widget.enableAlpha,
+      paletteType: PaletteType.hueWheel,
+      pickerAreaBorderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(2),
+        topRight: Radius.circular(2),
+      ),
     );
   }
 }
