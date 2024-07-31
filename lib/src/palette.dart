@@ -494,21 +494,66 @@ class HUEColorWheelPainter extends CustomPainter {
         Color(0x00FFFFFF),
       ],
     );
+
+    // Draw the color wheel
     canvas.drawCircle(center, radio, Paint()..shader = gradientS.createShader(rect));
     canvas.drawCircle(center, radio, Paint()..shader = gradientR.createShader(rect));
+    // Apply the black radial mask
     canvas.drawCircle(center, radio, Paint()..color = Colors.black.withOpacity(1 - hsvColor.value));
 
-    canvas.drawCircle(
-      Offset(
-        center.dx + hsvColor.saturation * radio * cos((hsvColor.hue * pi / 180)),
-        center.dy - hsvColor.saturation * radio * sin((hsvColor.hue * pi / 180)),
-      ),
-      size.height * 0.04,
-      Paint()
-        ..color = pointerColor ?? (useWhiteForeground(hsvColor.toColor()) ? Colors.white : Colors.black)
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke,
+    // Calculate the position of the indicator
+    Offset indicatorPosition = Offset(
+      center.dx + hsvColor.saturation * radio * cos(hsvColor.hue * pi / 180),
+      center.dy - hsvColor.saturation * radio * sin(hsvColor.hue * pi / 180),
     );
+
+    // Draw the filled circle with crosshair at the indicator position
+    drawCrosshairCircleFilled(
+      canvas,
+      indicatorPosition,
+      size.height * 0.04,
+      hsvColor.toColor(),
+    );
+  }
+
+  void drawCrosshairCircleFilled(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Color fillColor,
+  ) {
+    // Paint setup for the filled circle
+    Paint paintCircle = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
+
+    // Draw the filled circle
+    canvas.drawCircle(center, radius, paintCircle);
+
+    // Paint setup for the border of the circle
+    Paint borderPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    // Draw the border of the circle
+    canvas.drawCircle(center, radius, borderPaint);
+
+    // Paint setup for the crosshair lines with rounded corners
+    Paint paintLine = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round; // Setting strokeCap to round
+
+    // Gap size to keep the center visible
+    double gapSize = radius * 0.6;
+    double lineLength = radius - gapSize;
+
+    // Drawing the horizontal and vertical lines with a gap in the center and rounded corners
+    canvas.drawLine(Offset(center.dx - radius, center.dy), Offset(center.dx - gapSize, center.dy), paintLine);
+    canvas.drawLine(Offset(center.dx + gapSize, center.dy), Offset(center.dx + radius, center.dy), paintLine);
+    canvas.drawLine(Offset(center.dx, center.dy - radius), Offset(center.dx, center.dy - gapSize), paintLine);
+    canvas.drawLine(Offset(center.dx, center.dy + gapSize), Offset(center.dx, center.dy + radius), paintLine);
   }
 
   @override
@@ -1144,10 +1189,16 @@ class ColorPickerSlider extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints box) {
                 RenderBox? getBox = context.findRenderObject() as RenderBox?;
                 return GestureDetector(
-                  onPanDown: (DragDownDetails details) =>
-                      getBox != null ? slideEvent(getBox, box, details.globalPosition) : null,
-                  onPanUpdate: (DragUpdateDetails details) =>
-                      getBox != null ? slideEvent(getBox, box, details.globalPosition) : null,
+                  onPanDown: (DragDownDetails details) {
+                    // Sliders
+                    print('details.globalPosition: ${details.globalPosition}');
+                    getBox != null ? slideEvent(getBox, box, details.globalPosition) : null;
+                  },
+                  onPanUpdate: (DragUpdateDetails details) {
+                    // Sliders
+                    print('details.globalPosition: ${details.globalPosition}');
+                    getBox != null ? slideEvent(getBox, box, details.globalPosition) : null;
+                  },
                 );
               },
             ),
@@ -1278,15 +1329,21 @@ class ColorPickerArea extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         double width = constraints.maxWidth;
         double height = constraints.maxHeight;
-
+// Wheel
         return RawGestureDetector(
           gestures: {
             _AlwaysWinPanGestureRecognizer: GestureRecognizerFactoryWithHandlers<_AlwaysWinPanGestureRecognizer>(
               () => _AlwaysWinPanGestureRecognizer(),
               (_AlwaysWinPanGestureRecognizer instance) {
                 instance
-                  ..onDown = ((details) => _handleGesture(details.globalPosition, context, height, width))
-                  ..onUpdate = ((details) => _handleGesture(details.globalPosition, context, height, width));
+                  ..onDown = ((details) {
+                    print('details.globalPosition: ${details.globalPosition}');
+                    _handleGesture(details.globalPosition, context, height, width);
+                  })
+                  ..onUpdate = ((details) {
+                    print('details.globalPosition: ${details.globalPosition}');
+                    _handleGesture(details.globalPosition, context, height, width);
+                  });
               },
             ),
           },
